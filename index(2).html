@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Build Roblox rich-text name tags and rank tags with fonts, colours, gradients and outlines, then copy the command.">
+<title>Tag Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Amatic+SC:wght@400;700&family=Bangers&family=Bodoni+Moda:wght@400;700&family=Comic+Neue:wght@400;700&family=Creepster&family=Denk+One&family=EB+Garamond:wght@400;700&family=Fondamento&family=Fredoka:wght@400;600;700&family=Grenze+Gotisch:wght@400;700&family=Inconsolata:wght@400;700&family=Indie+Flower&family=Josefin+Sans:wght@300;400;700&family=Jura:wght@400;700&family=Kalam:wght@400;700&family=Luckiest+Guy&family=Merriweather:wght@400;700;900&family=Michroma&family=Montserrat:wght@300;400;700;900&family=Nunito:wght@300;400;700;900&family=Orbitron:wght@400;700&family=Oswald:wght@300;400;700&family=Patrick+Hand&family=Permanent+Marker&family=Press+Start+2P&family=Roboto:wght@300;400;700;900&family=Roboto+Condensed:wght@300;400;700&family=Roboto+Mono:wght@400;700&family=Sarpanch:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=Titillium+Web:wght@300;400;700&family=Ubuntu:wght@300;400;700&display=swap">
+<style>
+/* Layout: two-pane workbench. Editor on the left, sticky in-game preview + commands on the right; stacks on phones. */
+:root {
+  --bg: #eef0f2;
+  --panel: #ffffff;
+  --panel-2: #f5f6f8;
+  --line: #d6dadf;
+  --fg: #1d232b;
+  --muted: #5f6873;
+  --accent: #2f8f83;
+  --accent-ink: #ffffff;
+  --warn: #a35d00;
+  --warn-bg: #fff4e0;
+  --danger: #b3261e;
+  --stage: #11161c;
+  --stage-2: #1f2a35;
+  --code-bg: #f1f3f5;
+  --font-display: "Special Elite", "Courier New", monospace;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161b; --panel: #1a2027; --panel-2: #20272f; --line: #2e3740; --fg: #e4e8ec; --muted: #9aa5b0;
+    --accent: #4fb8aa; --accent-ink: #0d1a18; --warn: #f0b45a; --warn-bg: #2d2416; --danger: #f2827a;
+    --code-bg: #141a20; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161b; --panel: #1a2027; --panel-2: #20272f; --line: #2e3740; --fg: #e4e8ec; --muted: #9aa5b0;
+  --accent: #4fb8aa; --accent-ink: #0d1a18; --warn: #f0b45a; --warn-bg: #2d2416; --danger: #f2827a;
+  --code-bg: #141a20; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 15px/1.45 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 18px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font: 400 clamp(26px, 4vw, 36px)/1.1 var(--font-display); margin: 0; letter-spacing: .5px; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.presets span { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin-right: 2px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.card > .hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.card > .bd { padding: 14px; display: grid; gap: 14px; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+
+.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel-2); }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field > span { font-size: 12px; color: var(--muted); }
+input[type="text"], input[type="number"], select, textarea {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; min-width: 0;
+}
+input[type="number"] { width: 78px; }
+textarea { width: 100%; resize: vertical; min-height: 70px; font-family: var(--font-mono); font-size: 12.5px; }
+
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 6px; padding: 6px 11px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ghost { background: transparent; }
+.btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+.btn.sm { padding: 3px 8px; font-size: 13px; }
+
+/* a tag line */
+.tline { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel-2); }
+.tline > .lhd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-bottom: 1px dashed var(--line); }
+.tline > .lhd b { font-family: var(--font-mono); font-size: 13px; }
+.tline .base { padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: end; border-bottom: 1px dashed var(--line); }
+.segs { padding: 10px; display: grid; gap: 8px; }
+
+/* a text piece */
+.seg { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+.seg .top { display: flex; gap: 6px; align-items: center; }
+.seg .top input[type="text"] { flex: 1; font-family: var(--font-mono); }
+.seg .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.toggle { border: 1px solid var(--line); background: var(--panel-2); border-radius: 5px; min-width: 30px; height: 30px; cursor: pointer; font-weight: 700; padding: 0 7px; }
+.toggle[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.toggle.i { font-style: italic; } .toggle.u { text-decoration: underline; } .toggle.s { text-decoration: line-through; }
+.colorpick { display: inline-flex; align-items: center; gap: 4px; }
+input[type="color"] { width: 34px; height: 30px; padding: 2px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel-2); cursor: pointer; }
+.swatches { display: inline-flex; gap: 3px; }
+.sw { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer; padding: 0; }
+.sep { width: 1px; align-self: stretch; background: var(--line); }
+
+/* preview stage: always an in-game night look */
+.side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 18px; }
+@media (max-width: 900px) { .side { position: static; } }
+.stage {
+  border-radius: var(--radius); padding: 26px 16px 22px; min-height: 230px; display: grid; justify-items: center; align-content: center; gap: 4px;
+  background: radial-gradient(120% 90% at 50% 0%, var(--stage-2), var(--stage) 70%); color: #ffffff; text-align: center; overflow: hidden;
+  border: 1px solid var(--line);
+}
+.stage .ntag { font-size: 26px; line-height: 1.25; }
+.stage .rtag { font-size: 17px; line-height: 1.3; }
+.stage .figure { width: 46px; height: 64px; margin: 10px 0 4px; border-radius: 12px 12px 6px 6px; background: linear-gradient(#3a4652, #26303a); box-shadow: 0 -24px 0 -8px #3a4652; }
+.stage .team { font-size: 12px; color: #8b97a3; font-family: var(--font-body); }
+.stage .team i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+
+.out { display: grid; gap: 10px; }
+.code { position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; }
+.code pre { margin: 0; padding: 10px 12px; font: 12.5px/1.5 var(--font-mono); white-space: pre-wrap; word-break: break-all; max-height: 260px; overflow: auto; }
+.code .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--line); }
+.count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.warns { display: grid; gap: 6px; }
+.warn { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 13.5px; }
+.hint { color: var(--muted); font-size: 13px; margin: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+details.io summary { cursor: pointer; font-weight: 600; }
+details.io[open] summary { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Tag Workshop</h1>
+      <p class="sub">Build a name tag and rank tag with Roblox rich text. Pick fonts and colours, see it live, then copy the command.</p>
+    </div>
+    <div class="presets" id="presets"><span>Start from</span></div>
+  </header>
+
+  <div class="grid">
+    <section class="card" aria-label="Editor">
+      <div class="hd">
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tab-ntag" aria-selected="true" data-tag="ntag">Name tag</button>
+          <button role="tab" id="tab-rtag" aria-selected="false" data-tag="rtag">Rank tag</button>
+        </div>
+        <div class="row">
+          <label class="field"><span>Roblox username</span><input type="text" id="username" value="At0micTheNoob" maxlength="20" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="bd">
+        <div class="row">
+          <label class="field"><span>Command</span><input type="text" id="cmdname" style="width:140px"></label>
+          <p class="hint" style="flex:1;min-width:200px">Each line has its own font. Inside a line, add pieces of text and colour or style each one.</p>
+        </div>
+        <div id="lines" style="display:grid;gap:12px"></div>
+        <div><button class="btn" id="addline">+ Add line</button></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card" aria-label="Preview">
+        <div class="hd"><span class="label">Preview</span><span class="hint">Fonts are close matches; check in-game.</span></div>
+        <div class="bd">
+          <div class="stage" id="stage">
+            <div class="ntag" id="pv-ntag"></div>
+            <div class="figure" aria-hidden="true"></div>
+            <div class="rtag" id="pv-rtag"></div>
+            <div class="team" id="pv-team"><i style="background:#c0392b"></i>Text with no colour set shows in your team colour</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Commands">
+        <div class="hd">
+          <span class="label">Commands</span>
+          <label class="hint" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="join" checked> Join both with &amp;</label>
+        </div>
+        <div class="bd out" id="out"></div>
+        <div class="bd" style="padding-top:0">
+          <div class="warns" id="warns"></div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Import and save">
+        <div class="bd">
+          <details class="io">
+            <summary>Paste an existing tag</summary>
+            <div style="display:grid;gap:8px">
+              <textarea id="importText" placeholder='permrtag ac3 &lt;font face="SpecialElite"&gt; ...'></textarea>
+              <div class="row"><button class="btn" id="importN">Load as name tag</button><button class="btn" id="importR">Load as rank tag</button></div>
+              <p class="hint" id="importMsg"></p>
+            </div>
+          </details>
+          <details class="io">
+            <summary>Save or share a setup</summary>
+            <div style="display:grid;gap:8px">
+              <p class="hint">Copy the setup code to keep it or send it to someone. Paste a code here and press Load to open it.</p>
+              <textarea id="setupCode"></textarea>
+              <div class="row"><button class="btn" id="copySetup">Copy setup code</button><button class="btn" id="loadSetup">Load</button></div>
+              <p class="hint" id="setupMsg"></p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ---------- fonts: Roblox name -> preview font ----------
+const FONTS = [
+  ['SpecialElite', '"Special Elite"'], ['AmaticSC', '"Amatic SC"'], ['Arcade', '"Press Start 2P"'], ['Arial', 'Arial, Helvetica'],
+  ['Bangers', 'Bangers'], ['Bodoni', '"Bodoni Moda"'], ['Cartoon', '"Comic Neue"'], ['Code', 'Inconsolata'],
+  ['Creepster', 'Creepster'], ['DenkOne', '"Denk One"'], ['Fondamento', 'Fondamento'], ['FredokaOne', 'Fredoka'],
+  ['Garamond', '"EB Garamond"'], ['Gotham', 'Montserrat'], ['GrenzeGotisch', '"Grenze Gotisch"'], ['IndieFlower', '"Indie Flower"'],
+  ['JosefinSans', '"Josefin Sans"'], ['Jura', 'Jura'], ['Kalam', 'Kalam'], ['LuckiestGuy', '"Luckiest Guy"'],
+  ['Merriweather', 'Merriweather'], ['Michroma', 'Michroma'], ['Nunito', 'Nunito'], ['Oswald', 'Oswald'],
+  ['PatrickHand', '"Patrick Hand"'], ['PermanentMarker', '"Permanent Marker"'], ['Roboto', 'Roboto'], ['RobotoCondensed', '"Roboto Condensed"'],
+  ['RobotoMono', '"Roboto Mono"'], ['Sarpanch', 'Sarpanch'], ['SciFi', 'Orbitron'], ['SourceSans', '"Source Sans 3"'],
+  ['TitilliumWeb', '"Titillium Web"'], ['Ubuntu', 'Ubuntu'],
+];
+const FONT_CSS = Object.fromEntries(FONTS);
+const WEIGHTS = ['', 'Thin', 'ExtraLight', 'Light', 'Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold', 'Heavy'];
+const WEIGHT_NUM = { Thin: 100, ExtraLight: 200, Light: 300, Regular: 400, Medium: 500, SemiBold: 600, Bold: 700, ExtraBold: 800, Heavy: 900 };
+const SWATCHES = ['#FFFFFF', '#5FCB45', '#E74C3C', '#F1C40F', '#3498DB', '#9B59B6', '#1ABC9C', '#95A5A6', '#000000'];
+
+// ---------- state ----------
+const uid = () => Math.random().toString(36).slice(2, 9);
+const seg = (text, o = {}) => ({ id: uid(), text, mode: o.color ? (o.color2 ? 'gradient' : 'solid') : 'inherit', color: o.color || '#5FCB45', color2: o.color2 || '#3498DB', b: !!o.b, i: !!o.i, u: !!o.u, s: !!o.s, uc: !!o.uc, sc: !!o.sc });
+const line = (o = {}, segs = []) => ({ id: uid(), face: o.face ?? 'SpecialElite', weight: o.weight || '', size: o.size || '', baseOn: o.baseOn ?? true, base: o.base || '#FFFFFF', strokeOn: !!o.strokeOn, stroke: o.stroke || '#000000', thick: o.thick || 1, segs });
+
+const GREEN = '#5FCB45';
+const PRESETS = {
+  'Espada': () => ({
+    ntag: [line({}, [seg(' '), seg('Espada-10', { color: GREEN }), seg(' | '), seg('"atomic"', { color: GREEN })])],
+    rtag: [
+      line({}, [seg(' 《 ['), seg('E-10', { color: GREEN }), seg("] Espada's Finest 》")]),
+      line({ weight: 'Bold' }, [seg(' 《 // Espada - '), seg('4', { color: GREEN }), seg(', '), seg('"Nihilism"', { color: GREEN }), seg(' 》')]),
+    ],
+  }),
+  'Gradient': () => ({
+    ntag: [line({ face: 'Michroma', weight: 'Bold' }, [seg('NIGHTFALL', { color: '#8E44AD', color2: '#3498DB' })])],
+    rtag: [line({ face: 'Michroma', size: '' }, [seg('《 '), seg('Field Commander', { color: '#F1C40F' }), seg(' 》')])],
+  }),
+  'Outlined': () => ({
+    ntag: [line({ face: 'Bangers', strokeOn: true, stroke: '#000000', thick: 2 }, [seg('RAVEN', { color: '#E74C3C' })])],
+    rtag: [line({ face: 'Oswald', weight: 'Bold' }, [seg('[', {}), seg('MED', { color: '#E74C3C' }), seg('] Field Medic', {})])],
+  }),
+  'Blank': () => ({ ntag: [line({}, [seg('Your name')])], rtag: [line({}, [seg('Your rank')])] }),
+};
+
+let state = { tab: 'ntag', username: 'At0micTheNoob', cmd: { ntag: 'permntag', rtag: 'permrtag' }, join: true, ...PRESETS.Espada() };
+
+// ---------- rich text ----------
+const hexOk = (h) => /^#[0-9A-Fa-f]{6}$/.test(h);
+const up = (h) => h.toUpperCase();
+function lerpHex(a, b, t) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, k) => Math.round(v + (pb[k] - v) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+function gradientChars(text, a, b) {
+  const chars = [...text];
+  const visible = chars.filter((c) => c.trim()).length;
+  let n = 0;
+  return chars.map((c) => {
+    if (!c.trim()) return { c, color: null };
+    const t = visible > 1 ? n++ / (visible - 1) : 0;
+    return { c, color: lerpHex(a, b, t) };
+  });
+}
+function wrapStyle(s, inner) {
+  let out = inner;
+  if (s.sc) out = `<sc>${out}</sc>`;
+  if (s.uc) out = `<uc>${out}</uc>`;
+  if (s.s) out = `<s>${out}</s>`;
+  if (s.u) out = `<u>${out}</u>`;
+  if (s.i) out = `<i>${out}</i>`;
+  if (s.b) out = `<b>${out}</b>`;
+  return out;
+}
+function segMarkup(s) {
+  if (!s.text) return '';
+  let inner;
+  if (s.mode === 'solid') inner = `<font color="${up(s.color)}">${s.text}</font>`;
+  else if (s.mode === 'gradient') inner = gradientChars(s.text, s.color, s.color2).map((x) => (x.color ? `<font color="${x.color}">${x.c}</font>` : x.c)).join('');
+  else inner = s.text;
+  return wrapStyle(s, inner);
+}
+function lineMarkup(l) {
+  const attrs = [];
+  if (l.face) attrs.push(`face="${l.face}"`);
+  if (l.weight) attrs.push(`weight="${l.weight}"`);
+  if (l.size) attrs.push(`size="${l.size}"`);
+  if (l.baseOn) attrs.push(`color="${up(l.base)}"`);
+  let body = l.segs.map(segMarkup).join('');
+  if (l.strokeOn) body = `<stroke color="${up(l.stroke)}" thickness="${l.thick}">${body}</stroke>`;
+  return attrs.length ? `<font ${attrs.join(' ')}>${body}</font>` : body;
+}
+const tagMarkup = (lines) => lines.map(lineMarkup).join('<br/>');
+
+// ---------- preview (HTML approximation) ----------
+const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function segHTML(s, teamColor) {
+  const deco = [s.u && 'underline', s.s && 'line-through'].filter(Boolean).join(' ');
+  const style = [
+    s.b && 'font-weight:700', s.i && 'font-style:italic', deco && `text-decoration:${deco}`,
+    s.uc && 'text-transform:uppercase', s.sc && 'font-variant:small-caps',
+  ].filter(Boolean).join(';');
+  let inner;
+  if (s.mode === 'solid') inner = `<span style="color:${s.color}">${esc(s.text)}</span>`;
+  else if (s.mode === 'gradient') inner = gradientChars(s.text, s.color, s.color2).map((x) => (x.color ? `<span style="color:${x.color}">${esc(x.c)}</span>` : esc(x.c))).join('');
+  else inner = esc(s.text);
+  return `<span style="${style}">${inner}</span>`;
+}
+function lineHTML(l, teamColor) {
+  const style = [
+    `font-family:${FONT_CSS[l.face] || 'inherit'}, system-ui`,
+    `color:${l.baseOn ? l.base : teamColor}`,
+    l.weight && `font-weight:${WEIGHT_NUM[l.weight] || 400}`,
+    l.size && `font-size:${Math.max(6, Math.min(60, Number(l.size)))}px`,
+    l.strokeOn && `-webkit-text-stroke:${Math.min(4, l.thick) * 0.6}px ${l.stroke};paint-order:stroke fill`,
+  ].filter(Boolean).join(';');
+  return `<div style="${style};white-space:pre-wrap">${l.segs.map((s) => segHTML(s, teamColor)).join('') || '&nbsp;'}</div>`;
+}
+
+// ---------- warnings ----------
+function warningsFor(tag, lines) {
+  const w = [];
+  const label = tag === 'ntag' ? 'Name tag' : 'Rank tag';
+  for (const [n, l] of lines.entries()) {
+    for (const s of l.segs) {
+      if (/[<>]/.test(s.text)) w.push(`${label}, line ${n + 1}: "<" and ">" start rich text tags and will break this tag. Use 《 》 or [ ] instead.`);
+      if (/&/.test(s.text)) w.push(`${label}, line ${n + 1}: "&" splits commands, so text after it gets run as a new command.`);
+    }
+    if (!l.baseOn && l.segs.some((s) => s.mode === 'inherit' && s.text.trim())) {
+      w.push(`${label}, line ${n + 1}: some text has no colour, so it will show in your team colour.`);
+    }
+  }
+  return [...new Set(w)];
+}
+
+// ---------- editor UI ----------
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'class') el.className = v;
+    else if (v === true) el.setAttribute(k, '');
+    else if (v !== false && v != null) el.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) el.append(k.nodeType ? k : document.createTextNode(k));
+  return el;
+};
+const lines = () => state[state.tab];
+
+function colorControl(value, onInput, id) {
+  const input = h('input', { type: 'color', value, id, 'aria-label': 'Colour', oninput: (e) => onInput(e.target.value) });
+  const sw = h('span', { class: 'swatches' }, SWATCHES.map((c) => h('button', {
+    class: 'sw', type: 'button', title: c, 'aria-label': `Use ${c}`, style: `background:${c}`,
+    onclick: () => { input.value = c.toLowerCase(); onInput(c); },
+  })));
+  return h('span', { class: 'colorpick' }, input, sw);
+}
+
+function renderEditor() {
+  const box = $('#lines');
+  box.replaceChildren();
+  lines().forEach((l, li) => {
+    const update = (patch, full = false) => { Object.assign(l, patch); full ? renderAll() : refresh(); };
+    const move = (d) => { const arr = lines(); const j = li + d; if (j < 0 || j >= arr.length) return; [arr[li], arr[j]] = [arr[j], arr[li]]; renderAll(); };
+
+    const faceSel = h('select', { id: `face-${l.id}`, onchange: (e) => update({ face: e.target.value }) },
+      h('option', { value: '' }, '(game default)'), FONTS.map(([f]) => h('option', { value: f, selected: f === l.face }, f)));
+    const weightSel = h('select', { id: `weight-${l.id}`, onchange: (e) => update({ weight: e.target.value }) },
+      WEIGHTS.map((w) => h('option', { value: w, selected: w === l.weight }, w || '(normal)')));
+    const size = h('input', { type: 'number', min: 6, max: 100, placeholder: 'auto', value: l.size, id: `size-${l.id}`, oninput: (e) => update({ size: e.target.value }) });
+    const baseChk = h('input', { type: 'checkbox', checked: l.baseOn, id: `base-${l.id}`, onchange: (e) => update({ baseOn: e.target.checked }, true) });
+    const strokeChk = h('input', { type: 'checkbox', checked: l.strokeOn, id: `stroke-${l.id}`, onchange: (e) => update({ strokeOn: e.target.checked }, true) });
+
+    const base = h('div', { class: 'base' },
+      h('label', { class: 'field' }, h('span', {}, 'Font'), faceSel),
+      h('label', { class: 'field' }, h('span', {}, 'Weight'), weightSel),
+      h('label', { class: 'field' }, h('span', {}, 'Size'), size),
+      h('div', { class: 'field' },
+        h('label', { style: 'display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)' }, baseChk, 'Base colour (uncoloured text)'),
+        l.baseOn ? colorControl(l.base, (c) => update({ base: c }), `basec-${l.id}`) : h('span', { class: 'hint' }, 'Off: uses team colour')),
+      h('div', { class: 'field' },
+        h('label', { style: 'display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)' }, strokeChk, 'Outline'),
+        l.strokeOn ? h('span', { class: 'colorpick' },
+          h('input', { type: 'color', value: l.stroke, id: `strokec-${l.id}`, 'aria-label': 'Outline colour', oninput: (e) => update({ stroke: e.target.value }) }),
+          h('input', { type: 'number', min: 1, max: 10, value: l.thick, id: `thick-${l.id}`, style: 'width:60px', 'aria-label': 'Outline thickness', oninput: (e) => update({ thick: Math.max(1, Math.min(10, Number(e.target.value) || 1)) }) }),
+        ) : null),
+    );
+
+    const segs = h('div', { class: 'segs' });
+    l.segs.forEach((s, si) => {
+      const segUpdate = (patch, full = false) => { Object.assign(s, patch); full ? renderAll() : refresh(); };
+      const tog = (key, label, cls, title) => h('button', {
+        class: `toggle ${cls || ''}`, type: 'button', 'aria-pressed': String(!!s[key]), title,
+        onclick: (e) => { s[key] = !s[key]; e.currentTarget.setAttribute('aria-pressed', String(s[key])); refresh(); },
+      }, label);
+      const modeSel = h('select', { id: `mode-${s.id}`, 'aria-label': 'Colour mode', onchange: (e) => segUpdate({ mode: e.target.value }, true) },
+        h('option', { value: 'inherit', selected: s.mode === 'inherit' }, 'Base colour'),
+        h('option', { value: 'solid', selected: s.mode === 'solid' }, 'Colour'),
+        h('option', { value: 'gradient', selected: s.mode === 'gradient' }, 'Gradient'));
+      const colours = s.mode === 'solid' ? colorControl(s.color, (c) => segUpdate({ color: c }), `c1-${s.id}`)
+        : s.mode === 'gradient' ? h('span', { class: 'colorpick' },
+          h('input', { type: 'color', value: s.color, id: `g1-${s.id}`, 'aria-label': 'Gradient start', oninput: (e) => segUpdate({ color: e.target.value }) }), '→',
+          h('input', { type: 'color', value: s.color2, id: `g2-${s.id}`, 'aria-label': 'Gradient end', oninput: (e) => segUpdate({ color2: e.target.value }) }))
+          : null;
+      segs.append(h('div', { class: 'seg' },
+        h('div', { class: 'top' },
+          h('input', { type: 'text', value: s.text, id: `text-${s.id}`, 'aria-label': 'Text', placeholder: 'Text', oninput: (e) => segUpdate({ text: e.target.value }) }),
+          h('button', { class: 'btn sm ghost', type: 'button', title: 'Move left', 'aria-label': 'Move piece earlier', onclick: () => { if (si) { [l.segs[si - 1], l.segs[si]] = [l.segs[si], l.segs[si - 1]]; renderAll(); } } }, '↑'),
+          h('button', { class: 'btn sm ghost danger', type: 'button', 'aria-label': 'Remove piece', onclick: () => { l.segs.splice(si, 1); renderAll(); } }, '✕')),
+        h('div', { class: 'tools' }, modeSel, colours, h('span', { class: 'sep' }),
+          tog('b', 'B', '', 'Bold'), tog('i', 'I', 'i', 'Italic'), tog('u', 'U', 'u', 'Underline'), tog('s', 'S', 's', 'Strikethrough'),
+          tog('uc', 'AA', '', 'Uppercase'), tog('sc', 'Aa', '', 'Small caps')),
+      ));
+    });
+    segs.append(h('div', {}, h('button', { class: 'btn sm', type: 'button', onclick: () => { l.segs.push(seg('')); renderAll(); setTimeout(() => $(`#text-${l.segs.at(-1).id}`)?.focus()); } }, '+ Add text')));
+
+    box.append(h('div', { class: 'tline' },
+      h('div', { class: 'lhd' }, h('b', {}, `Line ${li + 1}`),
+        h('span', { class: 'row', style: 'gap:6px' },
+          h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Move line up', onclick: () => move(-1) }, '↑'),
+          h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Move line down', onclick: () => move(1) }, '↓'),
+          h('button', { class: 'btn sm ghost danger', type: 'button', onclick: () => { lines().splice(li, 1); if (!lines().length) lines().push(line({}, [seg('')])); renderAll(); } }, 'Remove line'))),
+      base, segs));
+  });
+}
+
+function copy(text, what) {
+  const done = () => toast(`Copied ${what}`);
+  try {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } catch { fallbackCopy(text, done); }
+}
+function fallbackCopy(text, done) {
+  const ta = h('textarea', { style: 'position:fixed;opacity:0' });
+  ta.value = text; document.body.append(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch { toast('Select the text and copy it'); }
+  ta.remove();
+}
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1600); }
+
+function commands() {
+  const u = state.username.trim() || 'USERNAME';
+  return {
+    ntag: `${state.cmd.ntag} ${u} ${tagMarkup(state.ntag)}`,
+    rtag: `${state.cmd.rtag} ${u} ${tagMarkup(state.rtag)}`,
+  };
+}
+
+function codeBox(title, text, what) {
+  return h('div', { class: 'code' },
+    h('div', { class: 'bar' }, h('span', { class: 'label' }, title), h('span', { class: 'row', style: 'gap:8px' },
+      h('span', { class: 'count' }, `${text.length} chars`),
+      h('button', { class: 'btn sm primary', type: 'button', onclick: () => copy(text, what) }, 'Copy'))),
+    h('pre', {}, text));
+}
+
+function refresh() {
+  // preview
+  const team = '#C0392B';
+  $('#pv-ntag').innerHTML = state.ntag.map((l) => lineHTML(l, team)).join('');
+  $('#pv-rtag').innerHTML = state.rtag.map((l) => lineHTML(l, team)).join('');
+  const anyTeam = [...state.ntag, ...state.rtag].some((l) => !l.baseOn);
+  $('#pv-team').hidden = !anyTeam;
+  // commands
+  const c = commands();
+  const out = $('#out');
+  out.replaceChildren();
+  if (state.join) out.append(codeBox('Both, joined', `${c.ntag}\n& ${c.rtag}`, 'both commands'));
+  else out.append(codeBox('Name tag', c.ntag, 'name tag'), codeBox('Rank tag', c.rtag, 'rank tag'));
+  // warnings
+  const w = [...warningsFor('ntag', state.ntag), ...warningsFor('rtag', state.rtag)];
+  if (!state.username.trim()) w.unshift('Add a Roblox username so the command knows who to tag.');
+  $('#warns').replaceChildren(...w.map((x) => h('div', { class: 'warn' }, x)));
+  save();
+}
+function renderAll() {
+  for (const b of document.querySelectorAll('[role="tab"]')) b.setAttribute('aria-selected', String(b.dataset.tag === state.tab));
+  $('#cmdname').value = state.cmd[state.tab];
+  renderEditor();
+  refresh();
+}
+
+// ---------- import (parse existing rich text) ----------
+function parseTag(raw) {
+  let text = raw.trim();
+  const m = text.match(/^(?:&\s*)?([a-z]*tag)\s+(\S+)\s+([\s\S]*)$/i);
+  let user = null;
+  let cmd = null;
+  if (m) { cmd = m[1]; user = m[2]; text = m[3]; }
+  const tokens = text.split(/(<[^>]+>)/).filter((t) => t !== '');
+  const out = [];
+  let cur = { segs: [], base: null };
+  const stack = [];
+  const style = () => {
+    const s = { b: false, i: false, u: false, s: false, uc: false, sc: false, color: null };
+    for (const f of stack) Object.assign(s, f.set);
+    return s;
+  };
+  const attrs = (tag) => Object.fromEntries([...tag.matchAll(/(\w+)\s*=\s*"([^"]*)"/g)].map((x) => [x[1].toLowerCase(), x[2]]));
+  for (const t of tokens) {
+    if (/^<br\s*\/?>$/i.test(t)) { out.push(cur); cur = { segs: [], base: null }; continue; }
+    const open = t.match(/^<(font|b|i|u|s|uc|uppercase|sc|smallcaps|stroke|mark)\b([^>]*)>$/i);
+    const close = t.match(/^<\/(font|b|i|u|s|uc|uppercase|sc|smallcaps|stroke|mark)>$/i);
+    if (open) {
+      const name = open[1].toLowerCase();
+      const a = attrs(open[2] || '');
+      const set = {};
+      if (name === 'font') {
+        if (!cur.base && !cur.segs.length) cur.base = { ...a, depth: stack.length };
+        else if (a.color) set.color = a.color;
+      }
+      if (name === 'stroke') cur.stroke = a;
+      if (['b', 'i', 'u', 's'].includes(name)) set[name] = true;
+      if (name === 'uc' || name === 'uppercase') set.uc = true;
+      if (name === 'sc' || name === 'smallcaps') set.sc = true;
+      stack.push({ name, set });
+      continue;
+    }
+    if (close) { stack.pop(); continue; }
+    if (t.startsWith('<')) continue; // unknown tag: drop
+    const st = style();
+    const decoded = t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+    const s = seg(decoded, st.color && hexOk(st.color) ? { color: st.color } : {});
+    Object.assign(s, { b: st.b, i: st.i, u: st.u, s: st.s, uc: st.uc, sc: st.sc });
+    const prev = cur.segs.at(-1);
+    if (prev && prev.mode === s.mode && prev.color === s.color && ['b', 'i', 'u', 's', 'uc', 'sc'].every((k) => prev[k] === s[k])) prev.text += s.text;
+    else cur.segs.push(s);
+  }
+  out.push(cur);
+  const result = out.map((l) => line({
+    face: l.base?.face ?? '',
+    weight: l.base?.weight || '',
+    size: l.base?.size || '',
+    baseOn: !!(l.base?.color && hexOk(l.base.color)),
+    base: l.base?.color && hexOk(l.base.color) ? l.base.color : '#FFFFFF',
+    strokeOn: !!l.stroke,
+    stroke: l.stroke?.color && hexOk(l.stroke.color) ? l.stroke.color : '#000000',
+    thick: Number(l.stroke?.thickness) || 1,
+  }, l.segs.length ? l.segs : [seg('')]));
+  return { lines: result, user, cmd };
+}
+
+function importAs(tag) {
+  const raw = $('#importText').value;
+  if (!raw.trim()) { $('#importMsg').textContent = 'Paste a tag or command first.'; return; }
+  // if a whole chain was pasted, pick the matching command
+  const parts = raw.split(/\n?\s*&\s+(?=[a-z]*tag\s)/i);
+  const pick = parts.find((p) => new RegExp(`^\\s*(&\\s*)?[a-z]*${tag}\\s`, 'i').test(p)) || parts[0];
+  const { lines: ls, user, cmd } = parseTag(pick);
+  state[tag] = ls;
+  if (user) state.username = user;
+  if (cmd) state.cmd[tag] = cmd;
+  state.tab = tag;
+  $('#username').value = state.username;
+  $('#importMsg').textContent = `Loaded ${ls.length} line${ls.length === 1 ? '' : 's'} into the ${tag === 'ntag' ? 'name' : 'rank'} tag.`;
+  renderAll();
+}
+
+// ---------- save / load ----------
+function save() {
+  try { localStorage.setItem('tag-workshop', JSON.stringify(state)); } catch { /* storage off */ }
+}
+function encodeSetup() { return btoa(unescape(encodeURIComponent(JSON.stringify({ v: 1, ...state })))); }
+function decodeSetup(code) {
+  const data = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+  if (!data || !Array.isArray(data.ntag) || !Array.isArray(data.rtag)) throw new Error('bad');
+  const fix = (ls) => ls.map((l) => ({ ...line(), ...l, id: uid(), segs: (l.segs || []).map((s) => ({ ...seg(''), ...s, id: uid() })) }));
+  return { tab: 'ntag', username: data.username || '', cmd: { ntag: data.cmd?.ntag || 'permntag', rtag: data.cmd?.rtag || 'permrtag' }, join: data.join !== false, ntag: fix(data.ntag), rtag: fix(data.rtag) };
+}
+
+// ---------- wire up ----------
+for (const [name, make] of Object.entries(PRESETS)) {
+  $('#presets').append(h('button', { class: 'btn sm', type: 'button', onclick: () => { Object.assign(state, make()); renderAll(); toast(`Loaded ${name}`); } }, name));
+}
+for (const b of document.querySelectorAll('[role="tab"]')) b.addEventListener('click', () => { state.tab = b.dataset.tag; renderAll(); });
+$('#username').addEventListener('input', (e) => { state.username = e.target.value.replace(/\s/g, ''); refresh(); });
+$('#cmdname').addEventListener('input', (e) => { state.cmd[state.tab] = e.target.value.trim() || (state.tab === 'ntag' ? 'permntag' : 'permrtag'); refresh(); });
+$('#join').addEventListener('change', (e) => { state.join = e.target.checked; refresh(); });
+$('#addline').addEventListener('click', () => { lines().push(line({}, [seg('')])); renderAll(); });
+$('#importN').addEventListener('click', () => importAs('ntag'));
+$('#importR').addEventListener('click', () => importAs('rtag'));
+$('#copySetup').addEventListener('click', () => { const code = encodeSetup(); $('#setupCode').value = code; copy(code, 'setup code'); });
+$('#loadSetup').addEventListener('click', () => {
+  try { state = decodeSetup($('#setupCode').value); $('#username').value = state.username; $('#join').checked = state.join; renderAll(); $('#setupMsg').textContent = 'Setup loaded.'; }
+  catch { $('#setupMsg').textContent = 'That code didn\'t work. Copy the whole code and try again.'; }
+});
+
+try {
+  const saved = localStorage.getItem('tag-workshop');
+  if (saved) state = decodeSetup(btoa(unescape(encodeURIComponent(saved))));
+} catch { /* start fresh */ }
+$('#username').value = state.username;
+$('#join').checked = state.join;
+renderAll();
+</script>
+</body>
+</html>
